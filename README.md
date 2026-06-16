@@ -103,6 +103,23 @@ uv run pytest
 
 ---
 
+## API
+
+REST endpoints are mounted under `/api` (interactive docs at `/docs`). Layering:
+**routers** (HTTP) → **services** (`core/<domain>/service.py`, business logic) →
+generic **`CRUDService`** base → DB. The core layer never imports `backend`; domain
+errors (`core/exceptions.py`) are mapped to HTTP in `backend/api/errors.py`.
+
+| Resource       | Endpoints |
+| -------------- | --------- |
+| System         | `GET /api/health`, `GET /api/ready` |
+| Jobs           | `POST/GET /api/jobs`, `GET/PATCH/DELETE /api/jobs/{id}` (filter: source, company, easy_apply, search; dedup on create) |
+| Resumes        | `POST/GET /api/resumes`, `GET/PATCH/DELETE /api/resumes/{id}` |
+| Applications   | `POST/GET /api/applications`, `GET/PATCH/DELETE /api/applications/{id}`, `PUT /api/applications/{id}/status`, `GET /api/applications/counts` |
+
+List endpoints return a paginated envelope `{ items, total, offset, limit }`
+(`offset`/`limit` query params, `limit` capped at 200).
+
 ## Database & migrations
 
 The data layer uses **SQLModel** over **async SQLite** (`aiosqlite`). A single
@@ -144,7 +161,7 @@ Structured logs (`structlog`) are written to:
 | ----- | --------------------------- | ------ |
 | 1     | Project structure           | ✅ done |
 | 2     | Database models             | ✅ done |
-| 3     | API layer                   | ⏳      |
+| 3     | API layer                   | ✅ done |
 | 4     | Frontend                    | ⏳      |
 | 5     | Job discovery               | ⏳      |
 | 6     | ATS engine                  | ⏳      |

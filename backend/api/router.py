@@ -9,11 +9,10 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from backend.api import system
+from backend.api import applications, jobs, resumes, system
 
 api_router = APIRouter()
 api_router.include_router(system.router)
-
-# Future phases mount their routers here, e.g.:
-#   api_router.include_router(jobs.router, prefix="/jobs", tags=["jobs"])
-#   api_router.include_router(resumes.router, prefix="/resumes", tags=["resumes"])
+api_router.include_router(jobs.router, prefix="/jobs", tags=["jobs"])
+api_router.include_router(resumes.router, prefix="/resumes", tags=["resumes"])
+api_router.include_router(applications.router, prefix="/applications", tags=["applications"])

@@ -21,6 +21,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend import __version__
+from backend.api.errors import register_exception_handlers
 from backend.api.router import api_router
 
 
@@ -78,6 +79,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_headers=["*"],
     )
 
+    register_exception_handlers(app)
     app.include_router(api_router, prefix="/api")
     return app
 

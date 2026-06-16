@@ -1,8 +1,4 @@
-"""Shared API response schemas.
-
-Phase-1 schemas describe the system/health endpoints. Feature schemas live next
-to their routers in later phases.
-"""
+"""System/health response schemas."""
 
 from __future__ import annotations
 
