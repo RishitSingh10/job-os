@@ -120,6 +120,29 @@ errors (`core/exceptions.py`) are mapped to HTTP in `backend/api/errors.py`.
 List endpoints return a paginated envelope `{ items, total, offset, limit }`
 (`offset`/`limit` query params, `limit` capped at 200).
 
+## Frontend
+
+A **Next.js 16** app (App Router, React 19, TypeScript, Tailwind v4, shadcn/ui on
+Base UI) in [`frontend/`](frontend). State/data via **React Query** + **Zustand**;
+charts via **Recharts**; dark mode via **next-themes**.
+
+```powershell
+cd frontend
+npm install          # first time
+npm run dev          # http://localhost:3000  (backend must run on :8000)
+npm run build        # production build
+npm run lint         # eslint
+```
+
+The browser talks to the backend at `NEXT_PUBLIC_API_BASE_URL` (default
+`http://127.0.0.1:8000/api`; see `frontend/.env.example`). Layout: a sidebar shell
+with Dashboard (stat cards + pipeline chart), **Jobs** (search/filter, add, track,
+delete), **Applications** (inline status transitions, filter), and **Resumes**
+(library + add). A typed API client lives in `src/lib/api.ts`; React Query hooks in
+`src/hooks/`.
+
+> Run the backend first (`./scripts/dev.ps1`) so the UI has data to show.
+
 ## Database & migrations
 
 The data layer uses **SQLModel** over **async SQLite** (`aiosqlite`). A single
@@ -162,7 +185,7 @@ Structured logs (`structlog`) are written to:
 | 1     | Project structure           | ✅ done |
 | 2     | Database models             | ✅ done |
 | 3     | API layer                   | ✅ done |
-| 4     | Frontend                    | ⏳      |
+| 4     | Frontend                    | ✅ done |
 | 5     | Job discovery               | ⏳      |
 | 6     | ATS engine                  | ⏳      |
 | 7     | Resume tailoring            | ⏳      |
