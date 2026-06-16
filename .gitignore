@@ -1,0 +1,54 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Node / Next.js (frontend) ---
+node_modules/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+
+# --- Environment ---
+.env
+.env.local
+.env.*.local
+
+# --- Database ---
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+jobos.db*
+
+# --- Vector store (ChromaDB persistent dir) ---
+storage/chroma/
+
+# --- Generated / runtime storage (keep the folders, ignore contents) ---
+storage/base_resumes/*
+storage/tailored_resumes/*
+storage/cover_letters/*
+storage/screenshots/*
+storage/browser_profiles/*
+storage/exports/*
+storage/logs/*
+storage/playwright_traces/*
+!storage/**/.gitkeep
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
