@@ -19,6 +19,11 @@ class JobService(CRUDService[Job]):
         stmt = select(Job).where(Job.dedup_hash == dedup_hash)
         return (await self.session.exec(stmt)).first()
 
+    async def find_candidates_by_company(self, company: str, *, limit: int = 50) -> list[Job]:
+        """Same-company jobs, used as the candidate set for fuzzy title dedup."""
+        stmt = select(Job).where(Job.company.ilike(company)).limit(limit)  # type: ignore[attr-defined]
+        return list((await self.session.exec(stmt)).all())
+
     async def upsert(self, job: Job) -> tuple[Job, bool]:
         """Create the job, or return the existing one if its fingerprint matches.
 

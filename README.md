@@ -120,6 +120,30 @@ errors (`core/exceptions.py`) are mapped to HTTP in `backend/api/errors.py`.
 List endpoints return a paginated envelope `{ items, total, offset, limit }`
 (`offset`/`limit` query params, `limit` capped at 200).
 
+## Job discovery
+
+The **Discovery Agent** ([agents/discovery/](agents/discovery)) fetches postings
+from a source adapter, deduplicates them, and indexes new ones:
+
+1. **Fetch** — `JobSourceAdapter` implementations normalise each source into a
+   `JobPosting`. Available now: **Exa** (semantic web search, needs
+   `JOBOS_EXA_API_KEY`) and **manual** (client-supplied import). LinkedIn/Indeed/
+   Glassdoor live scraping is wired in Phase 9 (browser automation).
+2. **Dedup** — cheapest signal first: exact fingerprint (`dedup_hash`) →
+   embedding cosine similarity → fuzzy title match within the same company.
+3. **Index** — new jobs are embedded (`nomic-embed-text` via Ollama) and stored in
+   **ChromaDB** for semantic dedup/search.
+
+Embeddings are **best-effort**: if Ollama is down or the `embeddings` extra isn't
+installed, discovery still runs with fingerprint + fuzzy dedup. Enable the vector
+store with `uv sync --extra embeddings`.
+
+```http
+POST /api/discovery/run
+{ "source": "manual", "postings": [ { "title": "...", "company": "...", "url": "..." } ] }
+{ "source": "exa", "query": "remote AI engineer roles at GenAI startups", "limit": 25 }
+```
+
 ## Frontend
 
 A **Next.js 16** app (App Router, React 19, TypeScript, Tailwind v4, shadcn/ui on
@@ -186,7 +210,7 @@ Structured logs (`structlog`) are written to:
 | 2     | Database models             | ✅ done |
 | 3     | API layer                   | ✅ done |
 | 4     | Frontend                    | ✅ done |
-| 5     | Job discovery               | ⏳      |
+| 5     | Job discovery               | ✅ done |
 | 6     | ATS engine                  | ⏳      |
 | 7     | Resume tailoring            | ⏳      |
 | 8     | Application tracker         | ⏳      |

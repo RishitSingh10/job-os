@@ -22,9 +22,8 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(ValidationError)
     async def _validation(_: Request, exc: ValidationError) -> JSONResponse:
-        return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content={"detail": exc.message}
-        )
+        # 422 literal: the named starlette constant was renamed across versions.
+        return JSONResponse(status_code=422, content={"detail": exc.message})
 
     @app.exception_handler(ConflictError)
     async def _conflict(_: Request, exc: ConflictError) -> JSONResponse:

@@ -31,6 +31,7 @@ def settings(tmp_path: Path) -> Iterator[Settings]:
         chroma_dir=tmp_path / "storage" / "chroma",
         database_url="sqlite+aiosqlite:///:memory:",
         log_json=True,
+        enable_vector_store=False,  # API tests don't need Chroma; unit tests make their own
     )
     reset_logging_for_tests()
 

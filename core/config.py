@@ -84,6 +84,7 @@ class Settings(BaseSettings):
     # --- ChromaDB ---
     chroma_dir: Path = Path("storage/chroma")
     chroma_collection: str = "jobos"
+    enable_vector_store: bool = True  # disable to skip Chroma startup (e.g. in tests)
 
     # --- External APIs ---
     exa_api_key: str | None = None

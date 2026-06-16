@@ -15,6 +15,7 @@ from contextlib import asynccontextmanager
 
 from core.config import Settings, get_settings
 from core.database import Database
+from core.embeddings import OllamaEmbedder, try_create_vector_store
 from core.logging import configure_logging, get_logger
 from core.paths import ensure_storage_layout
 from fastapi import FastAPI
@@ -43,12 +44,20 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     await db.create_all()
     app.state.db = db
 
+    # Embeddings are best-effort: the embedder is lazy (no network until used) and
+    # the vector store is None if the optional `embeddings` extra isn't installed.
+    app.state.embedder = OllamaEmbedder(settings)
+    app.state.vector_store = (
+        try_create_vector_store(settings) if settings.enable_vector_store else None
+    )
+
     log.info(
         "startup",
         app=settings.app_name,
         version=__version__,
         environment=settings.environment.value,
         storage_root=str(paths.root),
+        vector_store=app.state.vector_store is not None,
     )
     try:
         yield

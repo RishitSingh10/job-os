@@ -27,6 +27,16 @@ def get_database(request: Request) -> Database:
     return request.app.state.db
 
 
+def get_embedder(request: Request):
+    """Return the app's :class:`Embedder` (always present; lazy until used)."""
+    return request.app.state.embedder
+
+
+def get_vector_store(request: Request):
+    """Return the app's :class:`VectorStore`, or ``None`` if unavailable."""
+    return request.app.state.vector_store
+
+
 async def get_session(request: Request) -> AsyncIterator[AsyncSession]:
     """Yield a transactional :class:`AsyncSession` for the duration of a request.
 

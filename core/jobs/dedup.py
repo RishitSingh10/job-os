@@ -9,9 +9,17 @@ from __future__ import annotations
 
 import hashlib
 import re
+from difflib import SequenceMatcher
 
 _WS = re.compile(r"\s+")
 _NON_ALNUM = re.compile(r"[^a-z0-9 ]")
+
+# A new posting is a probable duplicate of an existing same-company job when its
+# normalised title is at least this similar.
+TITLE_SIMILARITY_THRESHOLD = 0.87
+# Two postings are semantic duplicates when their embedding cosine distance is at
+# or below this (0 = identical direction).
+EMBEDDING_DISTANCE_THRESHOLD = 0.08
 
 
 def normalize(text: str) -> str:
@@ -32,3 +40,17 @@ def make_dedup_hash(*, title: str, company: str, url: str = "") -> str:
         parts.append(url.split("?", 1)[0].rstrip("/").lower())
     digest = hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()
     return digest[:32]
+
+
+def title_similarity(a: str, b: str) -> float:
+    """Normalised similarity ratio in [0, 1] between two titles."""
+    return SequenceMatcher(None, normalize(a), normalize(b)).ratio()
+
+
+def same_company(a: str, b: str) -> bool:
+    return normalize(a) == normalize(b)
+
+
+def is_title_duplicate(a_title: str, b_title: str) -> bool:
+    """Whether two titles are similar enough to be considered the same role."""
+    return title_similarity(a_title, b_title) >= TITLE_SIMILARITY_THRESHOLD
