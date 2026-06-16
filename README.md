@@ -144,6 +144,24 @@ POST /api/discovery/run
 { "source": "exa", "query": "remote AI engineer roles at GenAI startups", "limit": 25 }
 ```
 
+## ATS scoring
+
+The **ATS Agent** ([agents/ats/](agents/ats)) scores a resume against a job using
+the spec's weighted model — **keyword 30% · skills 25% · experience 20% ·
+education 10% · semantic 15%** — and persists an `ATSScore` with matched/missing
+keywords, strengths, weaknesses, and actionable suggestions.
+
+Scoring is **deterministic + semantic**: keyword/skills via a curated taxonomy and
+tokenisation, experience via year heuristics, education via degree detection, and
+semantic via embedding cosine similarity (falling back to lexical overlap when
+Ollama is unavailable) — so results are reproducible and testable offline.
+
+```http
+POST /api/scoring/score      { "job_id": 1, "resume_id": 1 }
+GET  /api/scoring/scores?job_id=1
+GET  /api/scoring/scores/{id}
+```
+
 ## Frontend
 
 A **Next.js 16** app (App Router, React 19, TypeScript, Tailwind v4, shadcn/ui on
@@ -211,7 +229,7 @@ Structured logs (`structlog`) are written to:
 | 3     | API layer                   | ✅ done |
 | 4     | Frontend                    | ✅ done |
 | 5     | Job discovery               | ✅ done |
-| 6     | ATS engine                  | ⏳      |
+| 6     | ATS engine                  | ✅ done |
 | 7     | Resume tailoring            | ⏳      |
 | 8     | Application tracker         | ⏳      |
 | 9     | Browser automation          | ⏳      |

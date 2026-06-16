@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from backend.api import applications, discovery, jobs, resumes, system
+from backend.api import applications, discovery, jobs, resumes, scoring, system
 
 api_router = APIRouter()
 api_router.include_router(system.router)
@@ -17,3 +17,4 @@ api_router.include_router(jobs.router, prefix="/jobs", tags=["jobs"])
 api_router.include_router(resumes.router, prefix="/resumes", tags=["resumes"])
 api_router.include_router(applications.router, prefix="/applications", tags=["applications"])
 api_router.include_router(discovery.router, prefix="/discovery", tags=["discovery"])
+api_router.include_router(scoring.router, prefix="/scoring", tags=["scoring"])
