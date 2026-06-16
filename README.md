@@ -103,6 +103,25 @@ uv run pytest
 
 ---
 
+## Database & migrations
+
+The data layer uses **SQLModel** over **async SQLite** (`aiosqlite`). A single
+`Database` instance (engine + session factory) is created per app instance and
+stored on `app.state.db`; request handlers get a transactional session via the
+`get_session` dependency.
+
+Domain models live in [core/database/models.py](core/database/models.py):
+`Resume`, `Job`, `ATSScore`, `TailoredResume`, `CoverLetter`, `Application`,
+`ApprovalWorkflow`, `AutomationRun`, `LLMUsage`. On startup the app creates any
+missing tables; **Alembic** provides versioned migrations:
+
+```powershell
+uv run alembic upgrade head                      # apply migrations
+uv run alembic revision --autogenerate -m "..."  # generate a migration from model changes
+uv run alembic check                             # fail if models drift from migrations
+uv run alembic downgrade -1                       # roll back one revision
+```
+
 ## Configuration
 
 All settings are environment-driven with safe defaults (see `.env.example`).
@@ -124,7 +143,7 @@ Structured logs (`structlog`) are written to:
 | Phase | Scope                       | Status |
 | ----- | --------------------------- | ------ |
 | 1     | Project structure           | ✅ done |
-| 2     | Database models             | ⏳      |
+| 2     | Database models             | ✅ done |
 | 3     | API layer                   | ⏳      |
 | 4     | Frontend                    | ⏳      |
 | 5     | Job discovery               | ⏳      |

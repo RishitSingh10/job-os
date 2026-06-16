@@ -14,6 +14,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from core.config import Settings, get_settings
+from core.database import Database
 from core.logging import configure_logging, get_logger
 from core.paths import ensure_storage_layout
 from fastapi import FastAPI
@@ -27,14 +28,20 @@ from backend.api.router import api_router
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Application startup/shutdown.
 
-    On startup: configure logging and guarantee the storage layout exists. The
-    database engine and scheduler are wired in here in their respective phases.
+    On startup: configure logging, guarantee the storage layout exists, and bring
+    up the database (creating any missing tables). The scheduler is wired in here
+    in its own phase. The :class:`Database` instance lives on ``app.state.db``.
     """
     settings: Settings = app.state.settings
     configure_logging(settings)
     log = get_logger(__name__)
 
     paths = ensure_storage_layout(settings)
+
+    db = Database(settings)
+    await db.create_all()
+    app.state.db = db
+
     log.info(
         "startup",
         app=settings.app_name,
@@ -45,6 +52,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     try:
         yield
     finally:
+        await db.dispose()
         log.info("shutdown")
 
 

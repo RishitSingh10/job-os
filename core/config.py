@@ -68,6 +68,7 @@ class Settings(BaseSettings):
 
     # --- Database ---
     database_url: str = "sqlite+aiosqlite:///jobos.db"
+    db_echo: bool = False  # echo SQL to logs (verbose; opt-in even in debug)
 
     # --- Logging ---
     log_level: LogLevel = LogLevel.INFO

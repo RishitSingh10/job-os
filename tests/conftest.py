@@ -14,8 +14,10 @@ import pytest
 import pytest_asyncio
 from backend.main import create_app
 from core.config import Environment, Settings
+from core.database import Database
 from core.logging import reset_logging_for_tests
 from httpx import ASGITransport, AsyncClient
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 
 @pytest.fixture
@@ -31,6 +33,24 @@ def settings(tmp_path: Path) -> Iterator[Settings]:
         log_json=True,
     )
     reset_logging_for_tests()
+
+
+@pytest_asyncio.fixture
+async def db(settings: Settings) -> AsyncIterator[Database]:
+    """An isolated in-memory database with all tables created."""
+    database = Database(settings)
+    await database.create_all()
+    try:
+        yield database
+    finally:
+        await database.dispose()
+
+
+@pytest_asyncio.fixture
+async def session(db: Database) -> AsyncIterator[AsyncSession]:
+    """A transactional session against the in-memory test database."""
+    async with db.session() as s:
+        yield s
 
 
 @pytest_asyncio.fixture
