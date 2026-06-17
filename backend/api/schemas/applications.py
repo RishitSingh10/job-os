@@ -54,3 +54,9 @@ class ApplicationRead(BaseModel):
 class StatusCount(BaseModel):
     status: ApplicationStatus
     count: int
+
+
+class BoardColumn(BaseModel):
+    status: ApplicationStatus
+    count: int
+    items: list[ApplicationRead]

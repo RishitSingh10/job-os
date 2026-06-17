@@ -11,6 +11,7 @@ from fastapi import APIRouter
 
 from backend.api import (
     applications,
+    approvals,
     cover_letters,
     discovery,
     jobs,
@@ -29,3 +30,4 @@ api_router.include_router(discovery.router, prefix="/discovery", tags=["discover
 api_router.include_router(scoring.router, prefix="/scoring", tags=["scoring"])
 api_router.include_router(tailoring.router, prefix="/tailoring", tags=["tailoring"])
 api_router.include_router(cover_letters.router, prefix="/cover-letters", tags=["cover-letters"])
+api_router.include_router(approvals.router, prefix="/approvals", tags=["approvals"])

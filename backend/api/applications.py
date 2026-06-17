@@ -16,6 +16,7 @@ from backend.api.schemas.applications import (
     ApplicationRead,
     ApplicationStatusUpdate,
     ApplicationUpdate,
+    BoardColumn,
     StatusCount,
 )
 from backend.api.schemas.common import Message, Page
@@ -47,13 +48,14 @@ async def list_applications(
     session: SessionDep,
     status_filter: Annotated[ApplicationStatus | None, Query(alias="status")] = None,
     job_id: int | None = None,
+    tag: str | None = None,
     search: str | None = None,
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
 ) -> Page[ApplicationRead]:
     service = ApplicationService(session)
     items, total = await service.list_applications(
-        status=status_filter, job_id=job_id, search=search, offset=offset, limit=limit
+        status=status_filter, job_id=job_id, tag=tag, search=search, offset=offset, limit=limit
     )
     return Page[ApplicationRead](
         items=[ApplicationRead.model_validate(a) for a in items],
@@ -67,6 +69,20 @@ async def list_applications(
 async def application_counts(session: SessionDep) -> list[StatusCount]:
     counts = await ApplicationService(session).counts_by_status()
     return [StatusCount(status=s, count=c) for s, c in counts.items()]
+
+
+@router.get("/board", response_model=list[BoardColumn])
+async def application_board(session: SessionDep) -> list[BoardColumn]:
+    """Applications grouped into ordered Kanban columns."""
+    columns = await ApplicationService(session).board()
+    return [
+        BoardColumn(
+            status=status,
+            count=len(items),
+            items=[ApplicationRead.model_validate(a) for a in items],
+        )
+        for status, items in columns
+    ]
 
 
 @router.get("/{application_id}", response_model=ApplicationRead)

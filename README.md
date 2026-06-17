@@ -162,6 +162,33 @@ GET  /api/scoring/scores?job_id=1
 GET  /api/scoring/scores/{id}
 ```
 
+## Application tracker & approval workflow
+
+Applications move through an 11-stage pipeline (Saved → … → Offer/Rejected) with a
+Kanban board, table view, status counts, tag filtering, and notes.
+
+The **human-in-the-loop approval workflow** ([core/applications/approval.py](core/applications/approval.py))
+is the gate before any automated submission:
+
+```text
+review_required ──approve──▶ approved ──apply──▶ applying ──▶ applied
+        │                        │                   │
+        └────────reject──────────┴───────────────────┴──▶ rejected
+```
+
+Opening an approval snapshots the current artifacts (tailored resume, cover
+letter, ATS score, diff) as previews. **Nothing reaches `applying`/`applied`
+without first being `approved`** — illegal transitions return `409`.
+
+```http
+GET  /api/applications/board                 # Kanban columns
+GET  /api/applications?tag=remote&status=applied
+POST /api/approvals                          { "application_id": 1 }
+POST /api/approvals/{id}/approve
+POST /api/approvals/{id}/reject              { "reason": "..." }
+POST /api/approvals/{id}/apply               # requires approved
+```
+
 ## Resume tailoring & cover letters
 
 Powered by a local LLM via the `LLMClient` abstraction ([core/llm/](core/llm)) —
@@ -255,7 +282,7 @@ Structured logs (`structlog`) are written to:
 | 5     | Job discovery               | ✅ done |
 | 6     | ATS engine                  | ✅ done |
 | 7     | Resume tailoring            | ✅ done |
-| 8     | Application tracker         | ⏳      |
+| 8     | Application tracker         | ✅ done |
 | 9     | Browser automation          | ⏳      |
 | 10    | Analytics                   | ⏳      |
 | 11    | Testing                     | ⏳      |

@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
+from sqlalchemy import String, cast
 from sqlmodel import select
 
 from core.database.base import utcnow
 from core.database.crud import CRUDService
-from core.database.enums import ApplicationStatus
+from core.database.enums import APPLICATION_PIPELINE, ApplicationStatus
 from core.database.models import Application, Job
 from core.exceptions import EntityNotFoundError
 
@@ -35,6 +36,7 @@ class ApplicationService(CRUDService[Application]):
         *,
         status: ApplicationStatus | None = None,
         job_id: int | None = None,
+        tag: str | None = None,
         search: str | None = None,
         offset: int = 0,
         limit: int = 50,
@@ -44,9 +46,23 @@ class ApplicationService(CRUDService[Application]):
             conditions.append(Application.status == status)
         if job_id is not None:
             conditions.append(Application.job_id == job_id)
+        if tag:
+            # tags is a JSON array stored as text; match the quoted tag token.
+            conditions.append(cast(Application.tags, String).like(f'%"{tag}"%'))
         if search:
             conditions.append(Application.notes.ilike(f"%{search}%"))  # type: ignore[attr-defined]
         return await self.list(conditions=conditions, offset=offset, limit=limit)
+
+    async def board(self) -> list[tuple[ApplicationStatus, Sequence[Application]]]:
+        """Applications grouped into ordered Kanban columns (pipeline order)."""
+        stmt = select(Application).order_by(Application.updated_at.desc())  # type: ignore[attr-defined]
+        rows = (await self.session.exec(stmt)).all()
+        grouped: dict[ApplicationStatus, list[Application]] = {
+            status: [] for status in APPLICATION_PIPELINE
+        }
+        for app in rows:
+            grouped[app.status].append(app)
+        return [(status, grouped[status]) for status in APPLICATION_PIPELINE]
 
     async def counts_by_status(self) -> dict[ApplicationStatus, int]:
         """Per-status totals — powers the Kanban column counts and the funnel."""
