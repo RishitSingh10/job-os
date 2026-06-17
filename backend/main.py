@@ -16,6 +16,7 @@ from contextlib import asynccontextmanager
 from core.config import Settings, get_settings
 from core.database import Database
 from core.embeddings import OllamaEmbedder, try_create_vector_store
+from core.llm import OllamaClient
 from core.logging import configure_logging, get_logger
 from core.paths import ensure_storage_layout
 from fastapi import FastAPI
@@ -50,6 +51,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.vector_store = (
         try_create_vector_store(settings) if settings.enable_vector_store else None
     )
+    app.state.llm = OllamaClient(settings)
 
     log.info(
         "startup",

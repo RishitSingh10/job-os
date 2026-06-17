@@ -16,6 +16,7 @@ from backend.main import create_app
 from core.config import Environment, Settings
 from core.database import Database
 from core.logging import reset_logging_for_tests
+from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -54,10 +55,15 @@ async def session(db: Database) -> AsyncIterator[AsyncSession]:
         yield s
 
 
+@pytest.fixture
+def app(settings: Settings) -> FastAPI:
+    """The FastAPI app instance (so tests can apply dependency overrides)."""
+    return create_app(settings)
+
+
 @pytest_asyncio.fixture
-async def client(settings: Settings) -> AsyncIterator[AsyncClient]:
+async def client(app: FastAPI) -> AsyncIterator[AsyncClient]:
     """An httpx client bound to the ASGI app, with lifespan events executed."""
-    app = create_app(settings)
     transport = ASGITransport(app=app)
     async with (
         app.router.lifespan_context(app),

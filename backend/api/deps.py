@@ -37,6 +37,18 @@ def get_vector_store(request: Request):
     return request.app.state.vector_store
 
 
+def get_llm(request: Request):
+    """Return the app's :class:`LLMClient` (lazy; only calls Ollama when used)."""
+    return request.app.state.llm
+
+
+def get_storage(request: Request):
+    """Return :class:`StoragePaths` resolved from the running app's settings."""
+    from core.paths import StoragePaths
+
+    return StoragePaths.from_settings(request.app.state.settings)
+
+
 async def get_session(request: Request) -> AsyncIterator[AsyncSession]:
     """Yield a transactional :class:`AsyncSession` for the duration of a request.
 

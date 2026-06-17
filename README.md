@@ -162,6 +162,30 @@ GET  /api/scoring/scores?job_id=1
 GET  /api/scoring/scores/{id}
 ```
 
+## Resume tailoring & cover letters
+
+Powered by a local LLM via the `LLMClient` abstraction ([core/llm/](core/llm)) —
+`OllamaClient` in production, `StubLLMClient` for offline tests.
+
+- **Tailoring Agent** ([agents/tailoring/](agents/tailoring)): scores the base
+  resume to find gaps → prompts the LLM to rewrite **truthfully** for ATS fit →
+  re-scores → computes a unified **before/after diff** → runs a **truthfulness
+  audit** (flags any skill keyword introduced that wasn't in the base) → persists a
+  versioned `TailoredResume`. Strong system prompt forbids fabrication.
+- **Cover Letter Agent** ([agents/cover_letter/](agents/cover_letter)): concise /
+  startup / enterprise styles, grounded only in the real resume, versioned per style.
+- **Export** ([core/documents/](core/documents)): render to **PDF, DOCX, Markdown,
+  HTML** (reportlab / python-docx).
+
+```http
+POST /api/tailoring/tailor   { "base_resume_id": 1, "job_id": 1, "exports": ["pdf","docx"] }
+GET  /api/tailoring/tailored?job_id=1
+POST /api/cover-letters       { "job_id": 1, "resume_id": 1, "style": "startup" }
+```
+
+`POST /tailor` returns the tailored resume plus a truthfulness audit
+(`truthful`, `introduced_skills`) and the ATS `score_delta`.
+
 ## Frontend
 
 A **Next.js 16** app (App Router, React 19, TypeScript, Tailwind v4, shadcn/ui on
@@ -230,7 +254,7 @@ Structured logs (`structlog`) are written to:
 | 4     | Frontend                    | ✅ done |
 | 5     | Job discovery               | ✅ done |
 | 6     | ATS engine                  | ✅ done |
-| 7     | Resume tailoring            | ⏳      |
+| 7     | Resume tailoring            | ✅ done |
 | 8     | Application tracker         | ⏳      |
 | 9     | Browser automation          | ⏳      |
 | 10    | Analytics                   | ⏳      |
